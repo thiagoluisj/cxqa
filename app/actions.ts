@@ -54,24 +54,30 @@ export async function updateStatus(id: number, status: string): Promise<void> {
   revalidatePath(`/ocorrencia/${id}`);
 }
 
+export type OcorrenciaComEvidencias = Ocorrencia & { total_evidencias: number };
+
 export async function getAllOcorrencias(filters?: {
   severidade?: string;
   status?: string;
   dispositivo?: string;
-}): Promise<Ocorrencia[]> {
+}): Promise<OcorrenciaComEvidencias[]> {
   const db = getDb();
-  let query = 'SELECT * FROM ocorrencias';
+  let query = `
+    SELECT o.*, COUNT(e.id) as total_evidencias
+    FROM ocorrencias o
+    LEFT JOIN evidencias e ON e.ocorrencia_id = o.id
+  `;
   const conditions: string[] = [];
   const params: string[] = [];
 
-  if (filters?.severidade) { conditions.push('severidade = ?'); params.push(filters.severidade); }
-  if (filters?.status) { conditions.push('status = ?'); params.push(filters.status); }
-  if (filters?.dispositivo) { conditions.push('dispositivo = ?'); params.push(filters.dispositivo); }
+  if (filters?.severidade) { conditions.push('o.severidade = ?'); params.push(filters.severidade); }
+  if (filters?.status) { conditions.push('o.status = ?'); params.push(filters.status); }
+  if (filters?.dispositivo) { conditions.push('o.dispositivo = ?'); params.push(filters.dispositivo); }
 
   if (conditions.length > 0) query += ' WHERE ' + conditions.join(' AND ');
-  query += ' ORDER BY created_at DESC';
+  query += ' GROUP BY o.id ORDER BY o.created_at DESC';
 
-  return db.prepare(query).all(...params) as Ocorrencia[];
+  return db.prepare(query).all(...params) as OcorrenciaComEvidencias[];
 }
 
 export async function getOcorrenciaById(id: number): Promise<Ocorrencia | null> {
