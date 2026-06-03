@@ -2,6 +2,8 @@
 
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
+import path from 'path';
+import fs from 'fs';
 import getDb, { type Ocorrencia, type Evidencia } from '@/lib/db';
 
 export type CreateOcorrenciaInput = {
@@ -88,6 +90,19 @@ export async function getOcorrenciaById(id: number): Promise<Ocorrencia | null> 
 export async function getEvidenciasByOcorrencia(ocorrenciaId: number): Promise<Evidencia[]> {
   const db = getDb();
   return db.prepare('SELECT * FROM evidencias WHERE ocorrencia_id = ? ORDER BY created_at ASC').all(ocorrenciaId) as Evidencia[];
+}
+
+export async function deleteOcorrencia(id: number): Promise<void> {
+  const db = getDb();
+  // Remove evidencias físicas do disco
+  const evidencias = db.prepare('SELECT filename FROM evidencias WHERE ocorrencia_id = ?').all(id) as { filename: string }[];
+  for (const ev of evidencias) {
+    const filepath = path.join(process.cwd(), 'public', 'uploads', ev.filename);
+    if (fs.existsSync(filepath)) fs.unlinkSync(filepath);
+  }
+  db.prepare('DELETE FROM ocorrencias WHERE id = ?').run(id);
+  revalidatePath('/');
+  redirect('/');
 }
 
 export async function updateSeveridade(id: number, severidade: string): Promise<void> {

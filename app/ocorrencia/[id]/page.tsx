@@ -1,9 +1,10 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import { getOcorrenciaById, updateStatus, updateSeveridade, getEvidenciasByOcorrencia } from '@/app/actions';
+import { getOcorrenciaById, updateStatus, updateSeveridade, getEvidenciasByOcorrencia, deleteOcorrencia } from '@/app/actions';
 import { Header } from '@/components/Header';
 import { SeveridadeBadge } from '@/components/SeveridadeBadge';
 import { StatusBadge } from '@/components/StatusBadge';
+import { DeleteButton } from '@/components/DeleteButton';
 
 type Props = {
   params: { id: string };
@@ -29,6 +30,11 @@ export default async function OcorrenciaPage({ params }: Props) {
     'use server';
     const severidade = formData.get('severidade') as string;
     await updateSeveridade(id, severidade);
+  }
+
+  async function handleDelete() {
+    'use server';
+    await deleteOcorrencia(id);
   }
 
   const fields = [
@@ -185,6 +191,8 @@ export default async function OcorrenciaPage({ params }: Props) {
                 </div>
               </dl>
             </div>
+
+            <DeleteButton deleteAction={handleDelete} />
           </div>
         </div>
       </main>
