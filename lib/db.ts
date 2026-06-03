@@ -2,7 +2,6 @@ import Database from 'better-sqlite3';
 import path from 'path';
 import fs from 'fs';
 
-// No Azure App Service Windows, HOME aponta para D:\home (diretório persistente)
 const AZURE_HOME = process.env.HOME || process.env.USERPROFILE;
 const BASE_DIR = AZURE_HOME && process.env.WEBSITE_SITE_NAME
   ? AZURE_HOME
@@ -50,7 +49,16 @@ function initializeDb(database: Database.Database): void {
       status TEXT NOT NULL DEFAULT 'Aberto',
       created_at TEXT NOT NULL DEFAULT (datetime('now')),
       updated_at TEXT NOT NULL DEFAULT (datetime('now'))
-    )
+    );
+
+    CREATE TABLE IF NOT EXISTS evidencias (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      ocorrencia_id INTEGER NOT NULL,
+      filename TEXT NOT NULL,
+      tipo TEXT NOT NULL DEFAULT 'imagem',
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      FOREIGN KEY (ocorrencia_id) REFERENCES ocorrencias(id) ON DELETE CASCADE
+    );
   `);
 }
 
@@ -70,4 +78,12 @@ export type Ocorrencia = {
   status: string;
   created_at: string;
   updated_at: string;
+};
+
+export type Evidencia = {
+  id: number;
+  ocorrencia_id: number;
+  filename: string;
+  tipo: 'imagem' | 'video';
+  created_at: string;
 };

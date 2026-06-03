@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
-import getDb, { type Ocorrencia } from '@/lib/db';
+import getDb, { type Ocorrencia, type Evidencia } from '@/lib/db';
 
 export type CreateOcorrenciaInput = {
   tela: string;
@@ -13,27 +13,43 @@ export type CreateOcorrenciaInput = {
   severidade: string;
   data_submissao: string;
   quem_testou: string;
-  evidencia: string | null;
+  evidencias: { filename: string; tipo: string }[];
   status: string;
 };
 
 export async function createOcorrencia(data: CreateOcorrenciaInput): Promise<void> {
   const db = getDb();
-  const stmt = db.prepare(`
-    INSERT INTO ocorrencias (tela, dispositivo, sistema, versao, ocorrencia, severidade, data_submissao, quem_testou, evidencia, status)
-    VALUES (@tela, @dispositivo, @sistema, @versao, @ocorrencia, @severidade, @data_submissao, @quem_testou, @evidencia, @status)
-  `);
 
-  stmt.run(data);
+  const result = db.prepare(`
+    INSERT INTO ocorrencias (tela, dispositivo, sistema, versao, ocorrencia, severidade, data_submissao, quem_testou, status)
+    VALUES (@tela, @dispositivo, @sistema, @versao, @ocorrencia, @severidade, @data_submissao, @quem_testou, @status)
+  `).run({
+    tela: data.tela,
+    dispositivo: data.dispositivo,
+    sistema: data.sistema,
+    versao: data.versao,
+    ocorrencia: data.ocorrencia,
+    severidade: data.severidade,
+    data_submissao: data.data_submissao,
+    quem_testou: data.quem_testou,
+    status: data.status,
+  });
+
+  const ocorrenciaId = result.lastInsertRowid;
+
+  for (const ev of data.evidencias) {
+    db.prepare(`
+      INSERT INTO evidencias (ocorrencia_id, filename, tipo) VALUES (?, ?, ?)
+    `).run(ocorrenciaId, ev.filename, ev.tipo);
+  }
+
   revalidatePath('/');
   redirect('/');
 }
 
 export async function updateStatus(id: number, status: string): Promise<void> {
   const db = getDb();
-  db.prepare(`
-    UPDATE ocorrencias SET status = ?, updated_at = datetime('now') WHERE id = ?
-  `).run(status, id);
+  db.prepare(`UPDATE ocorrencias SET status = ?, updated_at = datetime('now') WHERE id = ?`).run(status, id);
   revalidatePath('/');
   revalidatePath(`/ocorrencia/${id}`);
 }
@@ -48,23 +64,11 @@ export async function getAllOcorrencias(filters?: {
   const conditions: string[] = [];
   const params: string[] = [];
 
-  if (filters?.severidade) {
-    conditions.push('severidade = ?');
-    params.push(filters.severidade);
-  }
-  if (filters?.status) {
-    conditions.push('status = ?');
-    params.push(filters.status);
-  }
-  if (filters?.dispositivo) {
-    conditions.push('dispositivo = ?');
-    params.push(filters.dispositivo);
-  }
+  if (filters?.severidade) { conditions.push('severidade = ?'); params.push(filters.severidade); }
+  if (filters?.status) { conditions.push('status = ?'); params.push(filters.status); }
+  if (filters?.dispositivo) { conditions.push('dispositivo = ?'); params.push(filters.dispositivo); }
 
-  if (conditions.length > 0) {
-    query += ' WHERE ' + conditions.join(' AND ');
-  }
-
+  if (conditions.length > 0) query += ' WHERE ' + conditions.join(' AND ');
   query += ' ORDER BY created_at DESC';
 
   return db.prepare(query).all(...params) as Ocorrencia[];
@@ -72,21 +76,19 @@ export async function getAllOcorrencias(filters?: {
 
 export async function getOcorrenciaById(id: number): Promise<Ocorrencia | null> {
   const db = getDb();
-  const result = db.prepare('SELECT * FROM ocorrencias WHERE id = ?').get(id);
-  return (result as Ocorrencia) || null;
+  return (db.prepare('SELECT * FROM ocorrencias WHERE id = ?').get(id) as Ocorrencia) || null;
 }
 
-export async function getStats(): Promise<{
-  total: number;
-  aberto: number;
-  critico: number;
-  resolvido: number;
-}> {
+export async function getEvidenciasByOcorrencia(ocorrenciaId: number): Promise<Evidencia[]> {
+  const db = getDb();
+  return db.prepare('SELECT * FROM evidencias WHERE ocorrencia_id = ? ORDER BY created_at ASC').all(ocorrenciaId) as Evidencia[];
+}
+
+export async function getStats(): Promise<{ total: number; aberto: number; critico: number; resolvido: number }> {
   const db = getDb();
   const total = (db.prepare('SELECT COUNT(*) as count FROM ocorrencias').get() as { count: number }).count;
   const aberto = (db.prepare("SELECT COUNT(*) as count FROM ocorrencias WHERE status = 'Aberto'").get() as { count: number }).count;
   const critico = (db.prepare("SELECT COUNT(*) as count FROM ocorrencias WHERE severidade = 'Bug'").get() as { count: number }).count;
   const resolvido = (db.prepare("SELECT COUNT(*) as count FROM ocorrencias WHERE status = 'Resolvido'").get() as { count: number }).count;
-
   return { total, aberto, critico, resolvido };
 }

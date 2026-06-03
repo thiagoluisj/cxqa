@@ -1,41 +1,59 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Header } from '@/components/Header';
 import { createOcorrencia } from '@/app/actions';
 
 const today = new Date().toISOString().split('T')[0];
 
+type UploadedFile = {
+  filename: string;
+  tipo: 'imagem' | 'video';
+  previewUrl: string;
+  name: string;
+};
+
 export default function NovaOcorrenciaPage() {
   const router = useRouter();
   const [uploading, setUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [evidencia, setEvidencia] = useState<string | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [evidencias, setEvidencias] = useState<UploadedFile[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
 
-    setPreviewUrl(URL.createObjectURL(file));
     setUploading(true);
     setError(null);
 
-    try {
-      const fd = new FormData();
-      fd.append('file', file);
-      const res = await fetch('/api/upload', { method: 'POST', body: fd });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Erro no upload');
-      setEvidencia(data.filename);
-    } catch (err) {
-      setError((err as Error).message);
-      setPreviewUrl(null);
-    } finally {
-      setUploading(false);
+    for (const file of files) {
+      const previewUrl = URL.createObjectURL(file);
+      try {
+        const fd = new FormData();
+        fd.append('file', file);
+        const res = await fetch('/api/upload', { method: 'POST', body: fd });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Erro no upload');
+        setEvidencias(prev => [...prev, {
+          filename: data.filename,
+          tipo: data.tipo,
+          previewUrl,
+          name: file.name,
+        }]);
+      } catch (err) {
+        setError(`Erro ao enviar "${file.name}": ${(err as Error).message}`);
+      }
     }
+
+    setUploading(false);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  }
+
+  function removeEvidencia(filename: string) {
+    setEvidencias(prev => prev.filter(e => e.filename !== filename));
   }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -56,7 +74,7 @@ export default function NovaOcorrenciaPage() {
         severidade: data.severidade as string,
         data_submissao: data.data_submissao as string,
         quem_testou: data.quem_testou as string,
-        evidencia,
+        evidencias: evidencias.map(e => ({ filename: e.filename, tipo: e.tipo })),
         status: data.status as string,
       });
     } catch {
@@ -84,9 +102,7 @@ export default function NovaOcorrenciaPage() {
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {error && (
-            <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3 text-sm text-red-700">
-              {error}
-            </div>
+            <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3 text-sm text-red-700">{error}</div>
           )}
 
           <div className="card p-6 space-y-5">
@@ -109,9 +125,7 @@ export default function NovaOcorrenciaPage() {
                     <option>TV</option>
                   </select>
                   <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
-                      <polyline points="6 9 12 15 18 9"/>
-                    </svg>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400"><polyline points="6 9 12 15 18 9"/></svg>
                   </div>
                 </div>
               </div>
@@ -128,9 +142,7 @@ export default function NovaOcorrenciaPage() {
                     <option>Web</option>
                   </select>
                   <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
-                      <polyline points="6 9 12 15 18 9"/>
-                    </svg>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400"><polyline points="6 9 12 15 18 9"/></svg>
                   </div>
                 </div>
               </div>
@@ -193,41 +205,71 @@ export default function NovaOcorrenciaPage() {
           </div>
 
           <div className="card p-6 space-y-5">
-            <h2 className="font-semibold text-gray-900 pb-2 border-b border-gray-100">Evidência</h2>
+            <h2 className="font-semibold text-gray-900 pb-2 border-b border-gray-100">Evidências</h2>
 
             <div>
-              <label className="form-label">Imagem / Screenshot</label>
-              <div className="mt-1">
-                {previewUrl ? (
-                  <div className="relative rounded-xl overflow-hidden border border-gray-200">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={previewUrl} alt="Preview" className="w-full max-h-64 object-contain bg-gray-50" />
-                    <button
-                      type="button"
-                      onClick={() => { setPreviewUrl(null); setEvidencia(null); }}
-                      className="absolute top-2 right-2 w-7 h-7 bg-white rounded-full shadow border border-gray-200 flex items-center justify-center hover:bg-red-50 hover:border-red-200 transition-colors"
-                    >
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-gray-500">
-                        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-                      </svg>
-                    </button>
-                    {uploading && (
-                      <div className="absolute inset-0 bg-white/70 flex items-center justify-center">
-                        <div className="w-6 h-6 border-2 border-brand-500 border-t-transparent rounded-full animate-spin" />
+              <label className="form-label">Imagens e Vídeos</label>
+              <p className="text-xs text-gray-400 mb-3">Imagens: JPG, PNG, GIF, WebP (máx 10MB) · Vídeos: MP4, WebM, MOV (máx 200MB)</p>
+
+              {/* Uploaded files grid */}
+              {evidencias.length > 0 && (
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-3">
+                  {evidencias.map((ev) => (
+                    <div key={ev.filename} className="relative rounded-xl overflow-hidden border border-gray-200 bg-gray-50 group">
+                      {ev.tipo === 'video' ? (
+                        <div className="w-full h-28 flex flex-col items-center justify-center gap-1">
+                          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
+                            <polygon points="5 3 19 12 5 21 5 3"/>
+                          </svg>
+                          <span className="text-xs text-gray-400 text-center px-2 truncate w-full text-center">{ev.name}</span>
+                        </div>
+                      ) : (
+                        <img src={ev.previewUrl} alt="" className="w-full h-28 object-cover" />
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => removeEvidencia(ev.filename)}
+                        className="absolute top-1.5 right-1.5 w-6 h-6 bg-white rounded-full shadow border border-gray-200 flex items-center justify-center hover:bg-red-50 hover:border-red-200 transition-colors opacity-0 group-hover:opacity-100"
+                      >
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-gray-500">
+                          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                        </svg>
+                      </button>
+                      <div className="absolute bottom-1.5 left-1.5">
+                        <span className={`text-xs font-medium px-1.5 py-0.5 rounded-full ${ev.tipo === 'video' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'}`}>
+                          {ev.tipo === 'video' ? 'Vídeo' : 'Imagem'}
+                        </span>
                       </div>
-                    )}
-                  </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Upload area */}
+              <label className={`flex flex-col items-center justify-center w-full h-28 border-2 border-dashed rounded-xl cursor-pointer transition-colors ${uploading ? 'border-brand-300 bg-brand-50' : 'border-gray-300 hover:border-brand-400 hover:bg-brand-50'}`}>
+                {uploading ? (
+                  <>
+                    <div className="w-6 h-6 border-2 border-brand-500 border-t-transparent rounded-full animate-spin mb-2" />
+                    <p className="text-sm text-brand-600">Enviando...</p>
+                  </>
                 ) : (
-                  <label className="flex flex-col items-center justify-center w-full h-36 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:border-brand-400 hover:bg-brand-50 transition-colors">
+                  <>
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400 mb-2">
-                      <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
+                      <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
                     </svg>
-                    <p className="text-sm text-gray-500">Clique para enviar uma imagem</p>
-                    <p className="text-xs text-gray-400 mt-1">PNG, JPG, GIF, WebP — máx 10MB</p>
-                    <input type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
-                  </label>
+                    <p className="text-sm text-gray-500">Clique para adicionar arquivos</p>
+                    <p className="text-xs text-gray-400 mt-1">Imagens e vídeos · múltiplos arquivos permitidos</p>
+                  </>
                 )}
-              </div>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*,video/mp4,video/webm,video/quicktime"
+                  multiple
+                  onChange={handleFileChange}
+                  className="hidden"
+                />
+              </label>
             </div>
           </div>
 
@@ -239,7 +281,6 @@ export default function NovaOcorrenciaPage() {
                 <label className="form-label">Quem testou <span className="text-red-400">*</span></label>
                 <input name="quem_testou" required className="form-input" placeholder="Nome do testador" />
               </div>
-
               <div>
                 <label className="form-label">Data de Submissão <span className="text-red-400">*</span></label>
                 <input name="data_submissao" type="date" required defaultValue={today} className="form-input" />
@@ -256,22 +297,14 @@ export default function NovaOcorrenciaPage() {
                   <option>Descartado</option>
                 </select>
                 <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
-                    <polyline points="6 9 12 15 18 9"/>
-                  </svg>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400"><polyline points="6 9 12 15 18 9"/></svg>
                 </div>
               </div>
             </div>
           </div>
 
           <div className="flex gap-3 pb-8">
-            <button
-              type="button"
-              onClick={() => router.back()}
-              className="btn-secondary flex-1"
-            >
-              Cancelar
-            </button>
+            <button type="button" onClick={() => router.back()} className="btn-secondary flex-1">Cancelar</button>
             <button
               type="submit"
               disabled={submitting || uploading}
