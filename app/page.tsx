@@ -47,7 +47,7 @@ export default async function HomePage({ searchParams }: { searchParams: SearchP
             }
           />
           <StatsCard
-            title="Críticas"
+            title="Bugs"
             value={stats.critico}
             color="red"
             subtitle="alta prioridade"
@@ -77,10 +77,10 @@ export default async function HomePage({ searchParams }: { searchParams: SearchP
 
             <select name="severidade" defaultValue={searchParams.severidade || ''} className="form-select w-auto text-sm py-2">
               <option value="">Todas severidades</option>
-              <option>Crítico</option>
-              <option>Alto</option>
-              <option>Médio</option>
-              <option>Baixo</option>
+              <option>Bug</option>
+              <option>Alta</option>
+              <option>Média</option>
+              <option>Baixa</option>
             </select>
 
             <select name="status" defaultValue={searchParams.status || ''} className="form-select w-auto text-sm py-2">

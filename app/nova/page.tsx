@@ -152,17 +152,39 @@ export default function NovaOcorrenciaPage() {
 
             <div>
               <label className="form-label">Severidade <span className="text-red-400">*</span></label>
-              <div className="grid grid-cols-4 gap-2">
+              <div className="grid grid-cols-1 gap-2">
                 {[
-                  { value: 'Crítico', color: 'border-red-300 bg-red-50 text-red-700 peer-checked:bg-red-100 peer-checked:border-red-500' },
-                  { value: 'Alto', color: 'border-orange-300 bg-orange-50 text-orange-700 peer-checked:bg-orange-100 peer-checked:border-orange-500' },
-                  { value: 'Médio', color: 'border-yellow-300 bg-yellow-50 text-yellow-700 peer-checked:bg-yellow-100 peer-checked:border-yellow-500' },
-                  { value: 'Baixo', color: 'border-green-300 bg-green-50 text-green-700 peer-checked:bg-green-100 peer-checked:border-green-500' },
-                ].map(({ value, color }) => (
+                  {
+                    value: 'Bug',
+                    color: 'border-red-300 bg-red-50 text-red-700 peer-checked:bg-red-100 peer-checked:border-red-500',
+                    desc: 'Comportamento inesperado com impacto direto na utilização do produto, impossibilitando a conclusão de tarefa ou dificultando de forma disruptiva',
+                    example: 'Crashes inexperados, loops de tela, exibições em desacordo com regras de negócio',
+                  },
+                  {
+                    value: 'Alta',
+                    color: 'border-orange-300 bg-orange-50 text-orange-700 peer-checked:bg-orange-100 peer-checked:border-orange-500',
+                    desc: 'Inconsistência de implementação que gera um alto impacto na percepção de produto ou gera uma impossibilitação de navegação',
+                    example: 'Botões fora do lugar, textos em desacordo, comportamento de tela em desacordo com cenários mapeados no Figma',
+                  },
+                  {
+                    value: 'Média',
+                    color: 'border-yellow-300 bg-yellow-50 text-yellow-700 peer-checked:bg-yellow-100 peer-checked:border-yellow-500',
+                    desc: 'Inconsistência de implementação que gera um impacto na percepção do produto, porém sem impossibilitar a navegação e utilização na experiência prevista',
+                    example: 'Botões malformatados, espaçamentos não-respeitados, textos em tamanho ou cor em desacordo',
+                  },
+                  {
+                    value: 'Baixa',
+                    color: 'border-green-300 bg-green-50 text-green-700 peer-checked:bg-green-100 peer-checked:border-green-500',
+                    desc: 'Inconsistência de implementação que gera impacto na percepção do produto ou está inconsistente com o que foi desenhado por experiência, sem impactar diretamente na navegação',
+                    example: 'Cores inconsistentes, padding',
+                  },
+                ].map(({ value, color, desc, example }) => (
                   <label key={value} className="cursor-pointer">
                     <input type="radio" name="severidade" value={value} required className="sr-only peer" />
-                    <div className={`border-2 rounded-lg px-3 py-2 text-center text-sm font-medium transition-all ${color}`}>
-                      {value}
+                    <div className={`border-2 rounded-lg p-3 transition-all ${color}`}>
+                      <div className="font-semibold text-sm mb-1">{value}</div>
+                      <div className="text-xs opacity-80 leading-relaxed">{desc}</div>
+                      <div className="text-xs opacity-60 mt-1 italic">Ex: {example}</div>
                     </div>
                   </label>
                 ))}

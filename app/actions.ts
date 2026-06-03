@@ -85,7 +85,7 @@ export async function getStats(): Promise<{
   const db = getDb();
   const total = (db.prepare('SELECT COUNT(*) as count FROM ocorrencias').get() as { count: number }).count;
   const aberto = (db.prepare("SELECT COUNT(*) as count FROM ocorrencias WHERE status = 'Aberto'").get() as { count: number }).count;
-  const critico = (db.prepare("SELECT COUNT(*) as count FROM ocorrencias WHERE severidade = 'Crítico'").get() as { count: number }).count;
+  const critico = (db.prepare("SELECT COUNT(*) as count FROM ocorrencias WHERE severidade = 'Bug'").get() as { count: number }).count;
   const resolvido = (db.prepare("SELECT COUNT(*) as count FROM ocorrencias WHERE status = 'Resolvido'").get() as { count: number }).count;
 
   return { total, aberto, critico, resolvido };
