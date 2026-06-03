@@ -2,18 +2,21 @@ import Database from 'better-sqlite3';
 import path from 'path';
 import fs from 'fs';
 
-// No Azure App Service, /home é o diretório persistente entre deploys
-const DATA_DIR = process.env.AZURE_DATA_DIR
-  ? path.join(process.env.AZURE_DATA_DIR, 'data')
-  : path.join(process.cwd(), 'data');
+// No Azure App Service Windows, HOME aponta para D:\home (diretório persistente)
+const AZURE_HOME = process.env.HOME || process.env.USERPROFILE;
+const BASE_DIR = AZURE_HOME && process.env.WEBSITE_SITE_NAME
+  ? AZURE_HOME
+  : process.cwd();
+
+const DATA_DIR = path.join(BASE_DIR, 'data');
 const DB_PATH = path.join(DATA_DIR, 'cxqa.db');
 
 if (!fs.existsSync(DATA_DIR)) {
   fs.mkdirSync(DATA_DIR, { recursive: true });
 }
 
-const UPLOADS_DIR = process.env.AZURE_DATA_DIR
-  ? path.join(process.env.AZURE_DATA_DIR, 'uploads')
+const UPLOADS_DIR = AZURE_HOME && process.env.WEBSITE_SITE_NAME
+  ? path.join(AZURE_HOME, 'uploads')
   : path.join(process.cwd(), 'public', 'uploads');
 if (!fs.existsSync(UPLOADS_DIR)) {
   fs.mkdirSync(UPLOADS_DIR, { recursive: true });
