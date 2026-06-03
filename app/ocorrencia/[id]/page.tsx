@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import { getOcorrenciaById, updateStatus, getEvidenciasByOcorrencia } from '@/app/actions';
+import { getOcorrenciaById, updateStatus, updateSeveridade, getEvidenciasByOcorrencia } from '@/app/actions';
 import { Header } from '@/components/Header';
 import { SeveridadeBadge } from '@/components/SeveridadeBadge';
 import { StatusBadge } from '@/components/StatusBadge';
@@ -23,6 +23,12 @@ export default async function OcorrenciaPage({ params }: Props) {
     'use server';
     const status = formData.get('status') as string;
     await updateStatus(id, status);
+  }
+
+  async function handleSeveridadeChange(formData: FormData) {
+    'use server';
+    const severidade = formData.get('severidade') as string;
+    await updateSeveridade(id, severidade);
   }
 
   const fields = [
@@ -130,6 +136,24 @@ export default async function OcorrenciaPage({ params }: Props) {
                   </div>
                 </div>
                 <button type="submit" className="btn-primary w-full justify-center text-sm">Salvar Status</button>
+              </form>
+            </div>
+
+            <div className="card p-5">
+              <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Atualizar Severidade</h2>
+              <form action={handleSeveridadeChange}>
+                <div className="relative mb-3">
+                  <select name="severidade" defaultValue={ocorrencia.severidade} className="form-select">
+                    <option>Bug</option>
+                    <option>Alta</option>
+                    <option>Média</option>
+                    <option>Baixa</option>
+                  </select>
+                  <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400"><polyline points="6 9 12 15 18 9"/></svg>
+                  </div>
+                </div>
+                <button type="submit" className="btn-secondary w-full justify-center text-sm">Salvar Severidade</button>
               </form>
             </div>
 

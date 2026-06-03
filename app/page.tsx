@@ -22,52 +22,66 @@ export default async function HomePage({ searchParams }: { searchParams: SearchP
       <Header />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Stats */}
+
+        {/* Status cards */}
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+          <StatsCard title="Total" value={stats.total} color="blue" subtitle="ocorrências"
+            icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>}
+          />
+          <StatsCard title="Abertas" value={stats.aberto} color="purple" subtitle="aguardando"
+            icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>}
+          />
+          <StatsCard title="Resolvidas" value={stats.resolvido} color="green" subtitle="concluídas"
+            icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>}
+          />
+        </div>
+
+        {/* Severidade cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          <StatsCard
-            title="Total"
-            value={stats.total}
-            color="blue"
-            subtitle="ocorrências"
-            icon={
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-              </svg>
-            }
-          />
-          <StatsCard
-            title="Abertas"
-            value={stats.aberto}
-            color="purple"
-            subtitle="aguardando"
-            icon={
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/>
-              </svg>
-            }
-          />
-          <StatsCard
-            title="Bugs"
-            value={stats.critico}
-            color="red"
-            subtitle="alta prioridade"
-            icon={
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
-              </svg>
-            }
-          />
-          <StatsCard
-            title="Resolvidas"
-            value={stats.resolvido}
-            color="green"
-            subtitle="concluídas"
-            icon={
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
-              </svg>
-            }
-          />
+          <Link href="/?severidade=Bug" className="block">
+            <div className="card p-4 bg-red-50 border-0 hover:shadow-md transition-shadow cursor-pointer">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-semibold text-red-500 uppercase tracking-wider">Bug</p>
+                  <p className="text-3xl font-bold text-red-700 mt-1">{stats.bug}</p>
+                </div>
+                <span className="w-3 h-3 rounded-full bg-red-500 mt-1" />
+              </div>
+            </div>
+          </Link>
+          <Link href="/?severidade=Alta" className="block">
+            <div className="card p-4 bg-orange-50 border-0 hover:shadow-md transition-shadow cursor-pointer">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-semibold text-orange-500 uppercase tracking-wider">Alta</p>
+                  <p className="text-3xl font-bold text-orange-700 mt-1">{stats.alta}</p>
+                </div>
+                <span className="w-3 h-3 rounded-full bg-orange-500 mt-1" />
+              </div>
+            </div>
+          </Link>
+          <Link href="/?severidade=Média" className="block">
+            <div className="card p-4 bg-yellow-50 border-0 hover:shadow-md transition-shadow cursor-pointer">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-semibold text-yellow-600 uppercase tracking-wider">Média</p>
+                  <p className="text-3xl font-bold text-yellow-700 mt-1">{stats.media}</p>
+                </div>
+                <span className="w-3 h-3 rounded-full bg-yellow-500 mt-1" />
+              </div>
+            </div>
+          </Link>
+          <Link href="/?severidade=Baixa" className="block">
+            <div className="card p-4 bg-green-50 border-0 hover:shadow-md transition-shadow cursor-pointer">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-semibold text-green-600 uppercase tracking-wider">Baixa</p>
+                  <p className="text-3xl font-bold text-green-700 mt-1">{stats.baixa}</p>
+                </div>
+                <span className="w-3 h-3 rounded-full bg-green-500 mt-1" />
+              </div>
+            </div>
+          </Link>
         </div>
 
         {/* Filters */}
@@ -109,7 +123,7 @@ export default async function HomePage({ searchParams }: { searchParams: SearchP
 
         {/* Table */}
         <div className="card overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+          <div className="px-6 py-4 border-b border-gray-100">
             <h2 className="font-semibold text-gray-900">
               Ocorrências
               <span className="ml-2 text-sm font-normal text-gray-400">({ocorrencias.length})</span>
@@ -130,9 +144,7 @@ export default async function HomePage({ searchParams }: { searchParams: SearchP
                   : 'Cadastre a primeira ocorrência'}
               </p>
               {!searchParams.severidade && !searchParams.status && !searchParams.dispositivo && (
-                <Link href="/nova" className="btn-primary mt-4 inline-flex">
-                  + Nova Ocorrência
-                </Link>
+                <Link href="/nova" className="btn-primary mt-4 inline-flex">+ Nova Ocorrência</Link>
               )}
             </div>
           ) : (
@@ -147,7 +159,7 @@ export default async function HomePage({ searchParams }: { searchParams: SearchP
                     <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
                     <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Data</th>
                     <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Testador</th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Evidência</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Evidências</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
@@ -159,39 +171,17 @@ export default async function HomePage({ searchParams }: { searchParams: SearchP
                           <p className="text-xs text-gray-400 mt-0.5 line-clamp-1 max-w-[200px]">{o.ocorrencia}</p>
                         </Link>
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-600">
-                        <Link href={`/ocorrencia/${o.id}`} className="block">{o.dispositivo}</Link>
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-600">
-                        <Link href={`/ocorrencia/${o.id}`} className="block">
-                          {o.sistema}{o.versao ? ` ${o.versao}` : ''}
-                        </Link>
-                      </td>
-                      <td className="px-6 py-4">
-                        <Link href={`/ocorrencia/${o.id}`} className="block">
-                          <SeveridadeBadge severidade={o.severidade} size="sm" />
-                        </Link>
-                      </td>
-                      <td className="px-6 py-4">
-                        <Link href={`/ocorrencia/${o.id}`} className="block">
-                          <StatusBadge status={o.status} size="sm" />
-                        </Link>
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-500">
-                        <Link href={`/ocorrencia/${o.id}`} className="block">
-                          {new Date(o.data_submissao).toLocaleDateString('pt-BR')}
-                        </Link>
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-600">
-                        <Link href={`/ocorrencia/${o.id}`} className="block">{o.quem_testou}</Link>
-                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-600"><Link href={`/ocorrencia/${o.id}`} className="block">{o.dispositivo}</Link></td>
+                      <td className="px-6 py-4 text-sm text-gray-600"><Link href={`/ocorrencia/${o.id}`} className="block">{o.sistema}{o.versao ? ` ${o.versao}` : ''}</Link></td>
+                      <td className="px-6 py-4"><Link href={`/ocorrencia/${o.id}`} className="block"><SeveridadeBadge severidade={o.severidade} size="sm" /></Link></td>
+                      <td className="px-6 py-4"><Link href={`/ocorrencia/${o.id}`} className="block"><StatusBadge status={o.status} size="sm" /></Link></td>
+                      <td className="px-6 py-4 text-sm text-gray-500"><Link href={`/ocorrencia/${o.id}`} className="block">{new Date(o.data_submissao).toLocaleDateString('pt-BR')}</Link></td>
+                      <td className="px-6 py-4 text-sm text-gray-600"><Link href={`/ocorrencia/${o.id}`} className="block">{o.quem_testou}</Link></td>
                       <td className="px-6 py-4">
                         <Link href={`/ocorrencia/${o.id}`} className="block">
                           {o.evidencia ? (
                             <span className="inline-flex items-center gap-1 text-brand-600 text-xs font-medium">
-                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
-                              </svg>
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
                               Ver
                             </span>
                           ) : (

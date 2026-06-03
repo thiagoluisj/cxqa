@@ -84,11 +84,31 @@ export async function getEvidenciasByOcorrencia(ocorrenciaId: number): Promise<E
   return db.prepare('SELECT * FROM evidencias WHERE ocorrencia_id = ? ORDER BY created_at ASC').all(ocorrenciaId) as Evidencia[];
 }
 
-export async function getStats(): Promise<{ total: number; aberto: number; critico: number; resolvido: number }> {
+export async function updateSeveridade(id: number, severidade: string): Promise<void> {
   const db = getDb();
-  const total = (db.prepare('SELECT COUNT(*) as count FROM ocorrencias').get() as { count: number }).count;
-  const aberto = (db.prepare("SELECT COUNT(*) as count FROM ocorrencias WHERE status = 'Aberto'").get() as { count: number }).count;
-  const critico = (db.prepare("SELECT COUNT(*) as count FROM ocorrencias WHERE severidade = 'Bug'").get() as { count: number }).count;
-  const resolvido = (db.prepare("SELECT COUNT(*) as count FROM ocorrencias WHERE status = 'Resolvido'").get() as { count: number }).count;
-  return { total, aberto, critico, resolvido };
+  db.prepare(`UPDATE ocorrencias SET severidade = ?, updated_at = datetime('now') WHERE id = ?`).run(severidade, id);
+  revalidatePath('/');
+  revalidatePath(`/ocorrencia/${id}`);
+}
+
+export async function getStats(): Promise<{
+  total: number;
+  aberto: number;
+  resolvido: number;
+  bug: number;
+  alta: number;
+  media: number;
+  baixa: number;
+}> {
+  const db = getDb();
+  const count = (sql: string) => (db.prepare(sql).get() as { count: number }).count;
+  return {
+    total:    count('SELECT COUNT(*) as count FROM ocorrencias'),
+    aberto:   count("SELECT COUNT(*) as count FROM ocorrencias WHERE status = 'Aberto'"),
+    resolvido: count("SELECT COUNT(*) as count FROM ocorrencias WHERE status = 'Resolvido'"),
+    bug:      count("SELECT COUNT(*) as count FROM ocorrencias WHERE severidade = 'Bug'"),
+    alta:     count("SELECT COUNT(*) as count FROM ocorrencias WHERE severidade = 'Alta'"),
+    media:    count("SELECT COUNT(*) as count FROM ocorrencias WHERE severidade = 'Média'"),
+    baixa:    count("SELECT COUNT(*) as count FROM ocorrencias WHERE severidade = 'Baixa'"),
+  };
 }
