@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import { getOcorrenciaById, updateStatus, updateSeveridade, getEvidenciasByOcorrencia, deleteOcorrencia } from '@/app/actions';
+import { getOcorrenciaById, updateStatus, updateSeveridade, updateCampos, getEvidenciasByOcorrencia, deleteOcorrencia } from '@/app/actions';
 import { Header } from '@/components/Header';
 import { SeveridadeBadge } from '@/components/SeveridadeBadge';
 import { StatusBadge } from '@/components/StatusBadge';
@@ -35,6 +35,18 @@ export default async function OcorrenciaPage({ params }: Props) {
   async function handleDelete() {
     'use server';
     await deleteOcorrencia(id);
+  }
+
+  async function handleCamposChange(formData: FormData) {
+    'use server';
+    await updateCampos(id, {
+      tela: formData.get('tela') as string,
+      dispositivo: formData.get('dispositivo') as string,
+      sistema: formData.get('sistema') as string,
+      versao: formData.get('versao') as string,
+      quem_testou: formData.get('quem_testou') as string,
+      data_submissao: formData.get('data_submissao') as string,
+    });
   }
 
   const fields = [
@@ -164,19 +176,49 @@ export default async function OcorrenciaPage({ params }: Props) {
             </div>
 
             <div className="card p-5">
-              <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">Detalhes</h2>
-              <dl className="space-y-3">
-                {fields.map(({ label, value }) => (
-                  <div key={label}>
-                    <dt className="text-xs font-medium text-gray-400 uppercase tracking-wide">{label}</dt>
-                    <dd className="text-sm text-gray-800 mt-0.5 font-medium">{value}</dd>
-                  </div>
-                ))}
+              <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Editar Detalhes</h2>
+              <form action={handleCamposChange} className="space-y-3">
                 <div>
-                  <dt className="text-xs font-medium text-gray-400 uppercase tracking-wide">Severidade</dt>
-                  <dd className="mt-1"><SeveridadeBadge severidade={ocorrencia.severidade} size="sm" /></dd>
+                  <label className="text-xs font-medium text-gray-400 uppercase tracking-wide block mb-1">Tela</label>
+                  <input name="tela" defaultValue={ocorrencia.tela} className="form-input text-sm py-1.5" />
                 </div>
-              </dl>
+                <div>
+                  <label className="text-xs font-medium text-gray-400 uppercase tracking-wide block mb-1">Dispositivo</label>
+                  <div className="relative">
+                    <select name="dispositivo" defaultValue={ocorrencia.dispositivo} className="form-select text-sm py-1.5">
+                      <option>Mobile</option>
+                      <option>Tablet</option>
+                      <option>Desktop</option>
+                      <option>TV</option>
+                    </select>
+                  </div>
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-gray-400 uppercase tracking-wide block mb-1">Sistema</label>
+                  <div className="relative">
+                    <select name="sistema" defaultValue={ocorrencia.sistema} className="form-select text-sm py-1.5">
+                      <option>iOS</option>
+                      <option>Android</option>
+                      <option>Windows</option>
+                      <option>macOS</option>
+                      <option>Web</option>
+                    </select>
+                  </div>
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-gray-400 uppercase tracking-wide block mb-1">Versão</label>
+                  <input name="versao" defaultValue={ocorrencia.versao || ''} className="form-input text-sm py-1.5" placeholder="Ex: 17.2" />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-gray-400 uppercase tracking-wide block mb-1">Quem testou</label>
+                  <input name="quem_testou" defaultValue={ocorrencia.quem_testou} className="form-input text-sm py-1.5" />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-gray-400 uppercase tracking-wide block mb-1">Data de Submissão</label>
+                  <input name="data_submissao" type="date" defaultValue={ocorrencia.data_submissao} className="form-input text-sm py-1.5" />
+                </div>
+                <button type="submit" className="btn-secondary w-full justify-center text-sm">Salvar Detalhes</button>
+              </form>
             </div>
 
             <div className="card p-5">

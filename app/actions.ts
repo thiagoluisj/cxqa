@@ -105,6 +105,24 @@ export async function deleteOcorrencia(id: number): Promise<void> {
   redirect('/');
 }
 
+export async function updateCampos(id: number, data: { tela?: string; dispositivo?: string; sistema?: string; versao?: string; quem_testou?: string; data_submissao?: string }): Promise<void> {
+  const db = getDb();
+  const sets: string[] = [];
+  const params: unknown[] = [];
+  if (data.tela !== undefined) { sets.push('tela = ?'); params.push(data.tela); }
+  if (data.dispositivo !== undefined) { sets.push('dispositivo = ?'); params.push(data.dispositivo); }
+  if (data.sistema !== undefined) { sets.push('sistema = ?'); params.push(data.sistema); }
+  if (data.versao !== undefined) { sets.push('versao = ?'); params.push(data.versao); }
+  if (data.quem_testou !== undefined) { sets.push('quem_testou = ?'); params.push(data.quem_testou); }
+  if (data.data_submissao !== undefined) { sets.push('data_submissao = ?'); params.push(data.data_submissao); }
+  if (sets.length === 0) return;
+  sets.push("updated_at = datetime('now')");
+  params.push(id);
+  db.prepare(`UPDATE ocorrencias SET ${sets.join(', ')} WHERE id = ?`).run(...params);
+  revalidatePath('/');
+  revalidatePath(`/ocorrencia/${id}`);
+}
+
 export async function updateSeveridade(id: number, severidade: string): Promise<void> {
   const db = getDb();
   db.prepare(`UPDATE ocorrencias SET severidade = ?, updated_at = datetime('now') WHERE id = ?`).run(severidade, id);
