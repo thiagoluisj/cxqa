@@ -104,13 +104,13 @@ export default async function OcorrenciaPage({ params }: Props) {
                     <div key={ev.id} className="rounded-xl overflow-hidden border border-gray-200">
                       {ev.tipo === 'video' ? (
                         <video
-                          src={`/uploads/${ev.filename}`}
+                          src={`/api/uploads/${ev.filename}`}
                           controls
                           className="w-full max-h-[500px] bg-black"
                         />
                       ) : (
                         <img
-                          src={`/uploads/${ev.filename}`}
+                          src={`/api/uploads/${ev.filename}`}
                           alt="Evidência"
                           className="w-full object-contain max-h-[500px] bg-gray-50"
                         />
@@ -120,7 +120,7 @@ export default async function OcorrenciaPage({ params }: Props) {
                           {ev.tipo === 'video' ? 'Vídeo' : 'Imagem'}
                         </span>
                         <a
-                          href={`/uploads/${ev.filename}`}
+                          href={`/api/uploads/${ev.filename}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="inline-flex items-center gap-1 text-xs text-brand-600 hover:text-brand-700 font-medium"
